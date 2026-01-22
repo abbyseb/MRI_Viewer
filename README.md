@@ -1,65 +1,113 @@
-# 3D MRI/CT Volume Viewer
+# 🧠 3D MRI / CT Volume Viewer (PyQt5)
 
-A PyQt5-based desktop application for visualizing 3D medical imaging data (`.nii`, `.nii.gz`, `.npy`). Features an interactive 3D navigation cube, multi-planar reconstruction (Axial, Sagittal, Coronal), fine rotation controls, and video recording capabilities.
+A **desktop-based medical imaging viewer** built with **PyQt5** for interactive exploration of 3D MRI and CT volumes.  
+The application supports **NIfTI (`.nii`, `.nii.gz`) and NumPy (`.npy`)** formats and provides **multi-planar reconstruction (MPR)** with an intuitive **3D orientation cube**, precise rotation controls, and **session recording**.
 
-## Features
+This tool is well-suited for:
+- Medical imaging research  
+- Radiology / radiotherapy visualization  
+- Dataset inspection and debugging  
+- Educational demonstrations  
 
-*   **Format Support**: Loads NIfTI (`.nii`, `.nii.gz`) and NumPy (`.npy`) volumes.
-*   **Automatic Preprocessing**:
-    *   Converts NIfTI files to standard RAS orientation (Right-Anterior-Superior).
-    *   Resamples volumes to isotropic 1mm voxel spacing for correct aspect ratios.
-*   **Interactive Navigation**:
-    *   **3D Cube**: Drag to rotate the cube; clicking faces or rotating past thresholds automatically switches the 2D view.
-    *   **Slice Slider**: Scrub through slices in the current view plane.
-*   **Multi-Planar View**: Switch instantly between Axial, Sagittal, and Coronal views.
-*   **Fine Rotation**: Rotate the in-plane 2D image by precise degrees using a spinbox.
-*   **Video Recording**: Record your navigation session and save it as `.mp4` or `.avi`.
+---
 
-## Installation
+## ✨ Features
 
-### Prerequisites
+### 📁 Supported Formats
+- **NIfTI**: `.nii`, `.nii.gz`
+- **NumPy**: `.npy`
 
-Ensure you have Python 3.8+ installed.
+---
 
-### Install Dependencies
+### 🧭 Automatic Preprocessing (NIfTI)
+When loading NIfTI files, the application automatically:
 
-Run the following command to install all required libraries:
+1. **Normalizes orientation to RAS**
+   - Ensures consistent anatomical orientation  
+   - Uses `nibabel.as_closest_canonical`
 
-pip install numpy PyQt5 matplotlib scipy nibabel opencv-python
+2. **Resamples to isotropic spacing**
+   - Resampled to **1 × 1 × 1 mm**
+   - Prevents geometric distortion
+   - Implemented using `nibabel.processing.resample_to_output`
 
+3. **Standardizes internal array layout**
+   - Internal format: **(Z, Y, X)**
+   - Guarantees correct axial, coronal, and sagittal slicing
 
-Usage
-Run the Application:
+---
 
-bash
-python mri_viewer.py
-Load a Volume:
+## 🧩 User Interface Overview
 
-Click the "Load Volume (.npy / .nii)" button in the top left.
+### 🧱 3D Orientation Cube
+An interactive cube acting as both:
+- A **visual orientation reference**
+- A **navigation controller**
 
-Select a .nii.gz, .nii, or .npy file.
+**Capabilities**
+- Mouse-driven rotation (X and Y axes)
+- Slice textures mapped onto cube faces
+- Automatic view switching based on dominant face:
+  - **Top / Bottom → Axial**
+  - **Left / Right → Sagittal**
+  - **Front / Back → Coronal**
 
-Navigation:
+This enables intuitive spatial navigation without manual plane selection.
 
-Change View: Click "Axial", "Sagittal", or "Coronal" buttons, or rotate the 3D cube to auto-switch.
+---
 
-Change Slice: Use the horizontal slider or the spinbox to move through the volume.
+### 🖼️ Multi-Planar Reconstruction (MPR)
 
-Rotate Image: Enter a specific angle in the "Fine Rotation Adjustment" box (e.g., 90.0).
+| Plane      | Axis | Slice Direction |
+|------------|------|-----------------|
+| Axial      | Z    | Inferior → Superior |
+| Coronal    | Y    | Posterior → Anterior |
+| Sagittal   | X    | Left → Right |
 
-Recording:
+Planes can be switched via:
+- Dedicated UI buttons
+- Automatic switching through cube rotation
 
-Click "⏺ Start Recording".
+---
 
-Interact with the viewer (scroll slices, rotate, change views).
+### 🎚️ Slice Navigation
+- Horizontal slider for rapid navigation
+- SpinBox for precise slice selection
+- Dynamic slice limits per view plane
+- Current position displayed as:  
+  `Slice N / Total`
 
-Click "⏹ Stop Recording".
+---
 
-Click "💾 Save Video" to export the session.
+### 🔄 Fine Rotation Adjustment
+- In-plane rotation using a `QDoubleSpinBox`
+- Precision up to **0.1°**
+- Rotation applied via `scipy.ndimage.rotate`
+- Useful for alignment verification and visual inspection
 
-Troubleshooting
-"nibabel library is not installed": Ensure you ran the pip install command above.
+---
 
-Memory Errors: Large CT/MRI scans may require significant RAM. If the app crashes on load, try using a downsampled version of your dataset.
+## 🎥 Video Recording
 
-QImage Error (memoryview): This code includes a fix for PyTorch/NumPy memory views. If you modify the array_to_qimage function, ensure you keep the tobytes() or copy() logic.
+Record your navigation session and export it as a video.
+
+### Recording Workflow
+1. Click **⏺ Start Recording**
+2. Interact with the viewer:
+   - Scroll slices
+   - Rotate cube
+   - Switch planes
+3. Click **⏹ Stop Recording**
+4. Click **💾 Save Video**
+
+### Output Formats
+- `.mp4`
+- `.avi`
+
+### Implementation Details
+- Frames captured from the Matplotlib canvas
+- Stored as RGB NumPy arrays
+- Encoded using **OpenCV (`cv2.VideoWriter`)**
+- Default frame rate: **30 FPS**
+
+---
